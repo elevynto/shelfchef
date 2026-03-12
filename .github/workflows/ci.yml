@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint / Typecheck / Test / Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests (shared + api-unit + web)
+        run: npx vitest run --workspace vitest.workspace.ts --project shared --project api-unit --project web
+
+      - name: Integration tests (api-integration)
+        run: npx vitest run --workspace vitest.workspace.ts --project api-integration
+
+      - name: Build
+        run: npm run build
+
+      # E2E tests are excluded from CI — they require a running app and external
+      # services (Spoonacular, email). Run locally with: npm run test:e2e
