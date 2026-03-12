@@ -9,6 +9,12 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    env: {
+      JWT_SECRET: 'test-secret-at-least-sixteen-characters',
+      JWT_REFRESH_SECRET: 'test-refresh-secret-sixteen-chars',
+      MONGODB_URI: 'mongodb://localhost/shelfchef-test-placeholder',
+      NODE_ENV: 'test',
+    },
     coverage: {
       provider: 'v8',
       include: ['src/services/**'],

@@ -14,6 +14,15 @@ export default tseslint.config(
   },
   ...tseslint.configs.strictTypeChecked,
   {
+    // Test files: relax rules that produce false positives for Vitest assertions and supertest
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
+  },
+  {
     languageOptions: {
       parserOptions: {
         project: './tsconfig.eslint.json',

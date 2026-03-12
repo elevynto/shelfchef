@@ -13,4 +13,8 @@ export type { UnitFamily } from './constants/unitConversions.js';
 export { PantryItemSchema } from './schemas/pantry.js';
 export type { PantryItemInput } from './schemas/pantry.js';
 
+export { RegisterSchema, LoginSchema } from './schemas/auth.js';
+export type { RegisterInput, LoginInput } from './schemas/auth.js';
+export type { AuthUser, AuthResponse } from './types/auth.js';
+
 export type { ApiError, HealthResponse } from './types/index.js';
