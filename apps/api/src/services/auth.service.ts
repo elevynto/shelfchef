@@ -47,13 +47,21 @@ export async function register(input: {
   }
 
   const passwordHash = await bcrypt.hash(input.password, 10);
-  const user = await User.create({
-    email: input.email.toLowerCase(),
-    passwordHash,
-    emailVerified: false,
-    household: null,
-    refreshTokenHash: null,
-  });
+  let user;
+  try {
+    user = await User.create({
+      email: input.email.toLowerCase(),
+      passwordHash,
+      emailVerified: false,
+      household: null,
+      refreshTokenHash: null,
+    });
+  } catch (err) {
+    if (typeof err === 'object' && err !== null && 'code' in err && err.code === 11000) {
+      throw new AppError(409, 'Email already in use', 'EMAIL_IN_USE');
+    }
+    throw err;
+  }
 
   const userId = user._id.toString();
   const tokens = await issueTokens(userId);
