@@ -55,8 +55,7 @@ npm run typecheck
 > Update this section as the project evolves. Captures current state for continuity across sessions.
 
 ### Current Feature Slice
-Scaffold complete. No business features implemented yet.
-Next slice: auth (register / login / JWT middleware).
+Slice 3 — Pantry CRUD
 
 ### Open Risks
 - `mongodb-memory-server` downloads a MongoDB binary on first test run — may be slow in CI on cold cache.

@@ -428,4 +428,75 @@ All steps must pass. PRs blocked on failure.
 
 ---
 
-*Last updated: 2026-03-11. This spec is the source of truth for v1 scope.*
+## 15. Delivery Slices
+
+- [completed] Slice 1 — Auth foundation
+  - register
+  - login
+  - refresh
+  - logout
+  - auth/me
+  - JWT middleware
+  - user model foundation
+  - refresh token rotation
+  - auth unit and integration tests
+
+- [completed] Slice 2 — Household bootstrap
+  - create household
+  - get current household
+  - join household via invite code
+  - ensure authenticated user can be associated to exactly one household
+  - add tests for household bootstrap flows
+
+- [current] Slice 3 — Pantry CRUD
+  - list pantry items
+  - add pantry item
+  - update pantry item
+  - delete pantry item
+  - validate quantity, unit, category, and expiration date
+  - scope pantry items to household
+
+- [planned] Slice 4 — Recipe CRUD and recipe source foundation
+  - create recipe
+  - list recipes
+  - update recipe
+  - delete recipe
+  - ingredient schema and storage
+  - lay groundwork for external recipe fetch/caching
+
+- [planned] Slice 5 — Pantry-to-recipe matching
+  - compute missing ingredients
+  - compute match score
+  - identify pantry-satisfied vs missing items
+  - return match results for recipe views
+
+- [planned] Slice 6 — Shopping list generation
+  - generate shopping list from missing ingredients
+  - merge duplicate ingredients
+  - mark shopping list items complete/incomplete
+  - persist shopping list state
+
+- [planned] Slice 7 — Meal plan CRUD
+  - create meal plan entries
+  - list meal plan entries
+  - update meal plan entries
+  - delete meal plan entries
+  - associate meal plan entries to recipes and household
+
+- [planned] Slice 8 — Cook flow and pantry deduction
+  - cook a planned meal or recipe
+  - propose pantry deductions
+  - apply accepted deductions
+  - track deduction history / safeguards
+
+- [planned] Slice 9 — Hardening and polish
+  - search / filter / sort
+  - validation tightening
+  - authorization edge cases
+  - accessibility improvements
+  - error handling polish
+  - test hardening
+
+---
+
+*Last updated: 2026-03-12. This spec is the source of truth for v1 scope.*
