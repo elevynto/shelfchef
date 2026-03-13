@@ -17,4 +17,8 @@ export { RegisterSchema, LoginSchema } from './schemas/auth.js';
 export type { RegisterInput, LoginInput } from './schemas/auth.js';
 export type { AuthUser, AuthResponse } from './types/auth.js';
 
+export { CreateHouseholdSchema, JoinHouseholdSchema } from './schemas/household.js';
+export type { CreateHouseholdInput, JoinHouseholdInput } from './schemas/household.js';
+export type { HouseholdMember, HouseholdResponse, InviteResponse } from './types/household.js';
+
 export type { ApiError, HealthResponse } from './types/index.js';
