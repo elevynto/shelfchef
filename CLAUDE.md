@@ -55,7 +55,7 @@ npm run typecheck
 > Update this section as the project evolves. Captures current state for continuity across sessions.
 
 ### Current Feature Slice
-Slice 3 — Pantry CRUD
+Slice 4 — Recipe CRUD and recipe source foundation
 
 ### Open Risks
 - `mongodb-memory-server` downloads a MongoDB binary on first test run — may be slow in CI on cold cache.

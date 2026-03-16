@@ -448,7 +448,7 @@ All steps must pass. PRs blocked on failure.
   - ensure authenticated user can be associated to exactly one household
   - add tests for household bootstrap flows
 
-- [current] Slice 3 — Pantry CRUD
+- [completed] Slice 3 — Pantry CRUD
   - list pantry items
   - add pantry item
   - update pantry item
@@ -456,7 +456,7 @@ All steps must pass. PRs blocked on failure.
   - validate quantity, unit, category, and expiration date
   - scope pantry items to household
 
-- [planned] Slice 4 — Recipe CRUD and recipe source foundation
+- [current] Slice 4 — Recipe CRUD and recipe source foundation
   - create recipe
   - list recipes
   - update recipe

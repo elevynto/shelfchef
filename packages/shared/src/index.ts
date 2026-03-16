@@ -10,8 +10,9 @@ export {
 } from './constants/unitConversions.js';
 export type { UnitFamily } from './constants/unitConversions.js';
 
-export { PantryItemSchema } from './schemas/pantry.js';
-export type { PantryItemInput } from './schemas/pantry.js';
+export { PantryItemSchema, UpdatePantryItemSchema, BulkAddPantryItemsSchema } from './schemas/pantry.js';
+export type { PantryItemInput, UpdatePantryItemInput, BulkAddPantryItemsInput } from './schemas/pantry.js';
+export type { PantryItemResponse } from './types/pantry.js';
 
 export { RegisterSchema, LoginSchema } from './schemas/auth.js';
 export type { RegisterInput, LoginInput } from './schemas/auth.js';

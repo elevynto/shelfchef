@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import type { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env.js';
+import { User } from '../models/user.js';
 import { AppError } from '../utils/errors.js';
 
 declare global {
@@ -8,8 +9,28 @@ declare global {
   namespace Express {
     interface Request {
       user?: { id: string };
+      householdId?: string;
     }
   }
+}
+
+export function requireHousehold(req: Request, _res: Response, next: NextFunction): void {
+  const userId = req.user?.id;
+  if (!userId) {
+    next(new AppError(401, 'Unauthorized', 'UNAUTHORIZED'));
+    return;
+  }
+
+  User.findById(userId)
+    .then((user) => {
+      if (!user?.household) {
+        next(new AppError(403, 'Must be in a household', 'NO_HOUSEHOLD'));
+        return;
+      }
+      req.householdId = user.household.toString();
+      next();
+    })
+    .catch(next);
 }
 
 export function requireAuth(req: Request, _res: Response, next: NextFunction): void {
