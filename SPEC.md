@@ -456,7 +456,7 @@ All steps must pass. PRs blocked on failure.
   - validate quantity, unit, category, and expiration date
   - scope pantry items to household
 
-- [current] Slice 4 — Recipe CRUD and recipe source foundation
+- [completed] Slice 4 — Recipe CRUD and recipe source foundation
   - create recipe
   - list recipes
   - update recipe
@@ -464,7 +464,7 @@ All steps must pass. PRs blocked on failure.
   - ingredient schema and storage
   - lay groundwork for external recipe fetch/caching
 
-- [planned] Slice 5 — Pantry-to-recipe matching
+- [current] Slice 5 — Pantry-to-recipe matching
   - compute missing ingredients
   - compute match score
   - identify pantry-satisfied vs missing items
