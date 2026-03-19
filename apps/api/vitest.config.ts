@@ -14,6 +14,7 @@ export default defineConfig({
       JWT_REFRESH_SECRET: 'test-refresh-secret-sixteen-chars',
       MONGODB_URI: 'mongodb://localhost/shelfchef-test-placeholder',
       NODE_ENV: 'test',
+      SPOONACULAR_API_KEY: 'test-spoonacular-key',
     },
     coverage: {
       provider: 'v8',

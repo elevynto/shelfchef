@@ -14,6 +14,10 @@ export { PantryItemSchema, UpdatePantryItemSchema, BulkAddPantryItemsSchema } fr
 export type { PantryItemInput, UpdatePantryItemInput, BulkAddPantryItemsInput } from './schemas/pantry.js';
 export type { PantryItemResponse } from './types/pantry.js';
 
+export { RecipeIngredientSchema, CreateRecipeSchema, UpdateRecipeSchema } from './schemas/recipe.js';
+export type { RecipeIngredientInput, CreateRecipeInput, UpdateRecipeInput } from './schemas/recipe.js';
+export type { RecipeIngredient, RecipeResponse, SpoonacularSearchResponse } from './types/recipe.js';
+
 export { RegisterSchema, LoginSchema } from './schemas/auth.js';
 export type { RegisterInput, LoginInput } from './schemas/auth.js';
 export type { AuthUser, AuthResponse } from './types/auth.js';
