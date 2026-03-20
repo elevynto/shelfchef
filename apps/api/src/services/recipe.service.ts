@@ -1,8 +1,11 @@
 import { Types } from 'mongoose';
 import type { HydratedDocument } from 'mongoose';
 import { Recipe, IRecipe } from '../models/recipe.js';
+import { PantryItem } from '../models/pantryItem.js';
 import { AppError } from '../utils/errors.js';
 import { env } from '../config/env.js';
+import { computeMatch } from '../utils/matchScore.js';
+import type { PantryItemToMatch, IngredientToMatch } from '../utils/matchScore.js';
 import type {
   CreateRecipeInput,
   UpdateRecipeInput,
@@ -117,13 +120,42 @@ function mapUnit(unit: string): string {
 
 // ── Service functions ─────────────────────────────────────────────────────────
 
-export async function listRecipes(householdId: string, q?: string): Promise<RecipeResponse[]> {
+export async function listRecipes(
+  householdId: string,
+  q?: string,
+  available?: boolean,
+): Promise<RecipeResponse[]> {
   const filter: Record<string, unknown> = { source: 'custom', household: householdId };
   if (q) {
     filter['title'] = { $regex: q, $options: 'i' };
   }
   const recipes = await Recipe.find(filter);
-  return recipes.map(toResponse);
+
+  if (!available) {
+    return recipes.map(toResponse);
+  }
+
+  const pantryItems = await PantryItem.find({ household: householdId });
+  const pantryForMatch: PantryItemToMatch[] = pantryItems.map((p) => ({
+    name: p.name,
+    quantity: p.quantity,
+    unit: p.unit,
+    aliases: p.aliases,
+    spoonacularIngredientId: p.spoonacularIngredientId,
+  }));
+
+  return recipes
+    .filter((recipe) => {
+      const ingredientsToMatch: IngredientToMatch[] = recipe.ingredients.map((ing) => ({
+        name: ing.name,
+        quantity: ing.quantity,
+        unit: ing.unit,
+        spoonacularIngredientId: ing.spoonacularIngredientId,
+      }));
+      const match = computeMatch(ingredientsToMatch, pantryForMatch);
+      return match.score >= 1;
+    })
+    .map(toResponse);
 }
 
 export async function createRecipe(

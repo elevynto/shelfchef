@@ -39,6 +39,7 @@ npm run typecheck
 - **TypeScript strict mode** — no `any`, no ts-ignore without a comment explaining why.
 - **Shared types in `packages/shared/`** — types used by both apps live in `packages/shared/src/types/`.
 - **Keep CLAUDE.md under 200 lines** — move reusable workflows to skills instead.
+- **No redundant follow-up notes** — do not suggest manual steps for tasks already completed automatically.
 
 ## Architecture Decisions
 
@@ -55,7 +56,7 @@ npm run typecheck
 > Update this section as the project evolves. Captures current state for continuity across sessions.
 
 ### Current Feature Slice
-Slice 5 — Pantry-to-recipe matching
+Slice 6 — Shopping list generation
 
 ### Open Risks
 - `mongodb-memory-server` downloads a MongoDB binary on first test run — may be slow in CI on cold cache.

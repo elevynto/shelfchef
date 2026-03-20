@@ -26,4 +26,6 @@ export { CreateHouseholdSchema, JoinHouseholdSchema } from './schemas/household.
 export type { CreateHouseholdInput, JoinHouseholdInput } from './schemas/household.js';
 export type { HouseholdMember, HouseholdResponse, InviteResponse } from './types/household.js';
 
+export type { MatchedIngredient, PantryMatchResponse } from './types/match.js';
+
 export type { ApiError, HealthResponse } from './types/index.js';

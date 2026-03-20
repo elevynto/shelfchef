@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { NextFunction, Request, Response } from 'express';
 import { CreateRecipeSchema, UpdateRecipeSchema } from '@shelfchef/shared';
 import * as recipeService from '../services/recipe.service.js';
+import * as matchService from '../services/match.service.js';
 import { requireAuth, requireHousehold } from '../middleware/authenticate.js';
 
 const router = Router();
@@ -18,8 +19,9 @@ router.get(
   '/',
   wrap(async (req, res) => {
     const q = typeof req.query.q === 'string' ? req.query.q : undefined;
+    const available = req.query.available === 'true' ? true : undefined;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const recipes = await recipeService.listRecipes(req.householdId!, q);
+    const recipes = await recipeService.listRecipes(req.householdId!, q, available);
     res.json({ recipes });
   }),
 );
@@ -34,6 +36,16 @@ router.get(
       return;
     }
     const result = await recipeService.searchSpoonacular(q);
+    res.json(result);
+  }),
+);
+
+// Register /:id/pantry-match before /:id so it isn't swallowed by the param route
+router.get(
+  '/:id/pantry-match',
+  wrap(async (req, res) => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const result = await matchService.getRecipeMatch(req.params.id!, req.householdId!);
     res.json(result);
   }),
 );

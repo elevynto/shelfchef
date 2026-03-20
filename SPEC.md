@@ -464,13 +464,13 @@ All steps must pass. PRs blocked on failure.
   - ingredient schema and storage
   - lay groundwork for external recipe fetch/caching
 
-- [current] Slice 5 — Pantry-to-recipe matching
+- [completed] Slice 5 — Pantry-to-recipe matching
   - compute missing ingredients
   - compute match score
   - identify pantry-satisfied vs missing items
   - return match results for recipe views
 
-- [planned] Slice 6 — Shopping list generation
+- [current] Slice 6 — Shopping list generation
   - generate shopping list from missing ingredients
   - merge duplicate ingredients
   - mark shopping list items complete/incomplete

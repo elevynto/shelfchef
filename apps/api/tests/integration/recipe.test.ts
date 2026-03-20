@@ -5,6 +5,7 @@ import { User } from '../../src/models/user.js';
 import { Household } from '../../src/models/household.js';
 import { HouseholdInvite } from '../../src/models/householdInvite.js';
 import { Recipe } from '../../src/models/recipe.js';
+import { PantryItem } from '../../src/models/pantryItem.js';
 
 const app = createApp();
 
@@ -14,6 +15,7 @@ afterEach(async () => {
     Household.deleteMany({}),
     HouseholdInvite.deleteMany({}),
     Recipe.deleteMany({}),
+    PantryItem.deleteMany({}),
   ]);
 });
 
@@ -592,5 +594,234 @@ describe('GET /api/v1/recipes/search', () => {
 
   it('401 without token', async () => {
     expect((await request(app).get('/api/v1/recipes/search?q=test')).status).toBe(401);
+  });
+});
+
+// ── GET /api/v1/recipes/:id/pantry-match ──────────────────────────────────────
+
+describe('GET /api/v1/recipes/:id/pantry-match', () => {
+  it('score 0 when pantry is empty', async () => {
+    const token = await registerAndSetupHousehold();
+    const createRes = await request(app)
+      .post('/api/v1/recipes')
+      .set(auth(token))
+      .send(validRecipe);
+    const { id: recipeId } = createRes.body.recipe as { id: string };
+
+    const res = await request(app)
+      .get(`/api/v1/recipes/${recipeId}/pantry-match`)
+      .set(auth(token));
+
+    expect(res.status).toBe(200);
+    expect(res.body.score).toBe(0);
+    expect(res.body.totalIngredients).toBe(3);
+    expect(res.body.available).toHaveLength(0);
+    expect(res.body.missing).toHaveLength(3);
+  });
+
+  it('score 1 when all ingredients present in sufficient quantity', async () => {
+    const token = await registerAndSetupHousehold();
+    const createRes = await request(app)
+      .post('/api/v1/recipes')
+      .set(auth(token))
+      .send(validRecipe);
+    const { id: recipeId } = createRes.body.recipe as { id: string };
+
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Flour', quantity: 500, unit: 'g' });
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Milk', quantity: 500, unit: 'ml' });
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Eggs', quantity: 6, unit: 'piece' });
+
+    const res = await request(app)
+      .get(`/api/v1/recipes/${recipeId}/pantry-match`)
+      .set(auth(token));
+
+    expect(res.status).toBe(200);
+    expect(res.body.score).toBe(1);
+    expect(res.body.available).toHaveLength(3);
+    expect(res.body.missing).toHaveLength(0);
+  });
+
+  it('partial match returns correct score', async () => {
+    const token = await registerAndSetupHousehold();
+    const createRes = await request(app)
+      .post('/api/v1/recipes')
+      .set(auth(token))
+      .send(validRecipe);
+    const { id: recipeId } = createRes.body.recipe as { id: string };
+
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Flour', quantity: 500, unit: 'g' });
+
+    const res = await request(app)
+      .get(`/api/v1/recipes/${recipeId}/pantry-match`)
+      .set(auth(token));
+
+    expect(res.body.available).toHaveLength(1);
+    expect(res.body.missing).toHaveLength(2);
+  });
+
+  it('insufficient quantity → ingredient in missing', async () => {
+    const token = await registerAndSetupHousehold();
+    const createRes = await request(app)
+      .post('/api/v1/recipes')
+      .set(auth(token))
+      .send(validRecipe);
+    const { id: recipeId } = createRes.body.recipe as { id: string };
+
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Flour', quantity: 100, unit: 'g' });
+
+    const res = await request(app)
+      .get(`/api/v1/recipes/${recipeId}/pantry-match`)
+      .set(auth(token));
+
+    const flourMissing = (res.body.missing as Array<{ name: string }>).find((i) => i.name === 'flour');
+    expect(flourMissing).toBeDefined();
+  });
+
+  it('unit conversion within same family counts as available', async () => {
+    const token = await registerAndSetupHousehold();
+    const createRes = await request(app)
+      .post('/api/v1/recipes')
+      .set(auth(token))
+      .send(validRecipe);
+    const { id: recipeId } = createRes.body.recipe as { id: string };
+
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Flour', quantity: 1, unit: 'kg' });
+
+    const res = await request(app)
+      .get(`/api/v1/recipes/${recipeId}/pantry-match`)
+      .set(auth(token));
+
+    const flourAvail = (res.body.available as Array<{ name: string }>).find((i) => i.name === 'flour');
+    expect(flourAvail).toBeDefined();
+  });
+
+  it('cross-unit-family → unitMismatch: true in missing', async () => {
+    const token = await registerAndSetupHousehold();
+    const createRes = await request(app)
+      .post('/api/v1/recipes')
+      .set(auth(token))
+      .send(validRecipe);
+    const { id: recipeId } = createRes.body.recipe as { id: string };
+
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Flour', quantity: 5, unit: 'piece' });
+
+    const res = await request(app)
+      .get(`/api/v1/recipes/${recipeId}/pantry-match`)
+      .set(auth(token));
+
+    const flourMissing = (res.body.missing as Array<{ name: string; unitMismatch: boolean }>).find(
+      (i) => i.name === 'flour',
+    );
+    expect(flourMissing?.unitMismatch).toBe(true);
+  });
+
+  it('works for a Spoonacular cached recipe', async () => {
+    const token = await registerAndSetupHousehold();
+    const spoon = await Recipe.create({
+      source: 'spoonacular',
+      spoonacularId: 88888,
+      household: null,
+      title: 'Simple Toast',
+      description: '',
+      imageUrl: null,
+      servings: 1,
+      readyInMinutes: 5,
+      ingredients: [{ name: 'bread', quantity: 2, unit: 'slice', spoonacularIngredientId: null }],
+      instructions: ['Toast it'],
+      cachedAt: new Date(),
+    });
+
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'bread', quantity: 4, unit: 'slice' });
+
+    const res = await request(app)
+      .get(`/api/v1/recipes/${spoon._id.toString()}/pantry-match`)
+      .set(auth(token));
+
+    expect(res.status).toBe(200);
+    expect(res.body.score).toBe(1);
+  });
+
+  it('404 on invalid id format', async () => {
+    const token = await registerAndSetupHousehold();
+    expect(
+      (await request(app).get('/api/v1/recipes/not-an-id/pantry-match').set(auth(token))).status,
+    ).toBe(404);
+  });
+
+  it('404 when recipe belongs to different household', async () => {
+    const tokenA = await registerAndSetupHousehold('a@example.com');
+    const tokenB = await registerAndSetupHousehold('b@example.com');
+
+    const createRes = await request(app)
+      .post('/api/v1/recipes')
+      .set(auth(tokenA))
+      .send(validRecipe);
+    const { id: recipeId } = createRes.body.recipe as { id: string };
+
+    const res = await request(app)
+      .get(`/api/v1/recipes/${recipeId}/pantry-match`)
+      .set(auth(tokenB));
+    expect(res.status).toBe(404);
+  });
+
+  it('401 without token', async () => {
+    expect(
+      (await request(app).get('/api/v1/recipes/000000000000000000000001/pantry-match')).status,
+    ).toBe(401);
+  });
+});
+
+// ── GET /api/v1/recipes?available=true ────────────────────────────────────────
+
+describe('GET /api/v1/recipes?available=true', () => {
+  it('returns only recipes where all ingredients are available', async () => {
+    const token = await registerAndSetupHousehold();
+
+    await request(app).post('/api/v1/recipes').set(auth(token)).send(validRecipe);
+    await request(app)
+      .post('/api/v1/recipes')
+      .set(auth(token))
+      .send({
+        ...validRecipe,
+        title: 'Unobtainium Cake',
+        ingredients: [{ name: 'unobtainium', quantity: 1, unit: 'g' }],
+        instructions: ['Mix'],
+      });
+
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Flour', quantity: 500, unit: 'g' });
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Milk', quantity: 500, unit: 'ml' });
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Eggs', quantity: 6, unit: 'piece' });
+
+    const res = await request(app).get('/api/v1/recipes?available=true').set(auth(token));
+    expect(res.status).toBe(200);
+    expect(res.body.recipes).toHaveLength(1);
+    expect((res.body.recipes as Array<{ title: string }>)[0]!.title).toBe('Pancakes');
+  });
+
+  it('returns empty when no recipe is fully covered', async () => {
+    const token = await registerAndSetupHousehold();
+    await request(app).post('/api/v1/recipes').set(auth(token)).send(validRecipe);
+
+    const res = await request(app).get('/api/v1/recipes?available=true').set(auth(token));
+    expect(res.body.recipes).toHaveLength(0);
+  });
+
+  it('does not include partially available recipes', async () => {
+    const token = await registerAndSetupHousehold();
+    await request(app).post('/api/v1/recipes').set(auth(token)).send(validRecipe);
+
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Flour', quantity: 500, unit: 'g' });
+    await request(app).post('/api/v1/pantry').set(auth(token)).send({ name: 'Milk', quantity: 500, unit: 'ml' });
+
+    const res = await request(app).get('/api/v1/recipes?available=true').set(auth(token));
+    expect(res.body.recipes).toHaveLength(0);
+  });
+
+  it('without available=true returns all recipes regardless of pantry', async () => {
+    const token = await registerAndSetupHousehold();
+    await request(app).post('/api/v1/recipes').set(auth(token)).send(validRecipe);
+
+    const res = await request(app).get('/api/v1/recipes').set(auth(token));
+    expect(res.body.recipes).toHaveLength(1);
   });
 });
